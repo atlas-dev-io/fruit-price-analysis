@@ -1,0 +1,99 @@
+import csv
+import json
+import time
+import urllib.parse
+import urllib.request
+from datetime import date
+from pathlib import Path
+
+
+BASE_URL = "https://data.moa.gov.tw/Service/OpenData/FromM/FarmTransData.aspx"
+TARGET_CROPS = ["蘋果", "香蕉", "柳橙", "葡萄", "梨"]
+TARGET_MARKET = "台北二"
+OUT_PATH = Path("data/raw/taiwan_main_fruits_taipei2_2017_to_present.csv")
+
+
+def roc_date(gregorian_date: date) -> str:
+    return f"{gregorian_date.year - 1911:03d}.{gregorian_date.month:02d}.{gregorian_date.day:02d}"
+
+
+def year_ranges(start_roc_year: int = 106):
+    today = date.today()
+    current_roc_year = today.year - 1911
+    ranges = []
+    for year in range(start_roc_year, current_roc_year + 1):
+        start = date(year + 1911, 1, 1)
+        end = today if year == current_roc_year else date(year + 1911, 12, 31)
+        ranges.append((roc_date(start), roc_date(end)))
+    return ranges
+
+
+def fetch_rows(crop: str, start_date: str, end_date: str):
+    all_rows = []
+    skip = 0
+    top = 1000
+    while True:
+        params = {
+            "StartDate": start_date,
+            "EndDate": end_date,
+            "Crop": crop,
+            "Market": TARGET_MARKET,
+            "$top": str(top),
+            "$skip": str(skip),
+        }
+        url = BASE_URL + "?" + urllib.parse.urlencode(params)
+        with urllib.request.urlopen(url, timeout=60) as response:
+            rows = json.load(response)
+        if not rows:
+            break
+        all_rows.extend(rows)
+        if len(rows) < top:
+            break
+        skip += top
+        time.sleep(0.1)
+    return all_rows
+
+
+def main():
+    fieldnames = [
+        "query_crop",
+        "交易日期",
+        "種類代碼",
+        "作物代號",
+        "作物名稱",
+        "市場代號",
+        "市場名稱",
+        "上價",
+        "中價",
+        "下價",
+        "平均價",
+        "交易量",
+    ]
+
+    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with OUT_PATH.open("w", newline="", encoding="utf-8-sig") as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        total_rows = 0
+        for crop in TARGET_CROPS:
+            for start_date, end_date in year_ranges():
+                rows = fetch_rows(crop, start_date, end_date)
+                cleaned_rows = []
+                for row in rows:
+                    if row.get("作物名稱") == "休市":
+                        continue
+                    row["query_crop"] = crop
+                    cleaned_rows.append({key: row.get(key, "") for key in fieldnames})
+                writer.writerows(cleaned_rows)
+                total_rows += len(cleaned_rows)
+                print(
+                    f"crop={crop} range={start_date}-{end_date} rows={len(cleaned_rows)} total={total_rows}",
+                    flush=True,
+                )
+                time.sleep(0.1)
+
+    print(f"wrote {total_rows} rows to {OUT_PATH}")
+
+
+if __name__ == "__main__":
+    main()

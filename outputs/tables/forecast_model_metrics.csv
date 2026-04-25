@@ -1,0 +1,11 @@
+fruit_name,model_name,mae,rmse,mape
+Apple,exponential_smoothing,5.766,6.0822,10.5226
+Apple,arima_1_1_1,5.8376,6.1846,10.6672
+Banana,exponential_smoothing,2.5454,3.0816,7.4945
+Banana,arima_1_1_1,2.5448,3.0907,7.4849
+Grape,exponential_smoothing,6.3629,7.6394,7.1183
+Grape,arima_1_1_1,6.3793,7.6755,7.1327
+Orange,arima_1_1_1,1.089,1.3505,3.1261
+Orange,exponential_smoothing,1.0961,1.3592,3.1509
+Pear,arima_1_1_1,16.4623,20.7768,22.8638
+Pear,exponential_smoothing,16.735,21.3123,23.0592

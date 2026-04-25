@@ -6,19 +6,8 @@ FRUIT_LABELS = {
     "Apple": "Apple",
     "Banana": "Banana",
     "Orange": "Orange",
-    "Grapes": "Grapes",
+    "Grape": "Grape",
     "Pear": "Pear",
-    "Mango": "Mango",
-    "Papaya": "Papaya",
-    "Pomegranate": "Pomegranate",
-    "Watermelon": "Watermelon",
-    "Guava": "Guava",
-    "Lemon": "Lemon",
-    "Lime": "Lime",
-    "Sweet Lime": "Sweet Lime",
-    "Amla": "Amla",
-    "Avocado": "Avocado",
-    "Pineapple": "Pineapple",
 }
 
 

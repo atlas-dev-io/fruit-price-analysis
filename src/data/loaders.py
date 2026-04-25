@@ -1,6 +1,6 @@
-import pandas as pd
 import zipfile
 from pathlib import Path
+import pandas as pd
 
 
 REQUIRED_COLUMNS = ["date", "fruit_name", "commodity_name", "market", "price", "unit"]
@@ -81,12 +81,37 @@ def _load_archive(path: Path) -> pd.DataFrame:
     ].reset_index(drop=True)
 
 
+def _load_thesis_dataset(path: Path) -> pd.DataFrame:
+    df = pd.read_csv(path)
+    rename_map = {
+        "trade_date": "date",
+        "fruit_category": "fruit_name",
+        "crop_name_zh": "commodity_name",
+        "market_name": "market",
+        "avg_price_twd_per_kg": "price",
+        "volume_kg": "volume",
+    }
+    df = df.rename(columns=rename_map)
+    df["date"] = pd.to_datetime(df["date"])
+    df["fruit_name"] = df["fruit_name"].astype(str).str.strip().str.title()
+    df["commodity_name"] = df["commodity_name"].astype(str).str.strip()
+    df["market"] = df["market"].astype(str).str.strip()
+    df["price"] = pd.to_numeric(df["price"], errors="coerce")
+    df["volume"] = pd.to_numeric(df.get("volume"), errors="coerce")
+    df["unit"] = "kg"
+    return df[
+        ["date", "fruit_name", "commodity_name", "market", "price", "unit", "volume"]
+    ].reset_index(drop=True)
+
+
 def load_price_data(path: Path) -> pd.DataFrame:
     if path.suffix.lower() == ".zip":
         df = _load_archive(path)
     else:
         df = pd.read_csv(path)
-        if "commodity_name" not in df.columns:
+        if "trade_date" in df.columns and "fruit_category" in df.columns:
+            df = _load_thesis_dataset(path)
+        elif "commodity_name" not in df.columns:
             df["commodity_name"] = df.get("fruit_name", "")
 
     missing = [column for column in REQUIRED_COLUMNS if column not in df.columns]

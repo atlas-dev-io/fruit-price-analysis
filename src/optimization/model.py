@@ -7,12 +7,8 @@ BASE_DEMAND = {
     "Apple": 120,
     "Banana": 115,
     "Orange": 105,
-    "Grapes": 75,
+    "Grape": 75,
     "Pear": 100,
-    "Mango": 95,
-    "Papaya": 90,
-    "Pomegranate": 70,
-    "Watermelon": 85,
 }
 
 

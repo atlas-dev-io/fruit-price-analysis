@@ -1,57 +1,21 @@
-date,fruit_name,market,forecast_price
-2023-10-05,Amla,Kalimati Market,72.2233
-2023-10-12,Amla,Kalimati Market,72.2233
-2023-10-19,Amla,Kalimati Market,72.2233
-2023-10-26,Amla,Kalimati Market,72.2233
-2023-10-05,Apple,Kalimati Market,305.0
-2023-10-12,Apple,Kalimati Market,305.0
-2023-10-19,Apple,Kalimati Market,305.0
-2023-10-26,Apple,Kalimati Market,305.0
-2023-10-05,Avocado,Kalimati Market,241.6667
-2023-10-12,Avocado,Kalimati Market,241.6667
-2023-10-19,Avocado,Kalimati Market,241.6667
-2023-10-26,Avocado,Kalimati Market,241.6667
-2023-10-05,Grapes,Kalimati Market,420.0
-2023-10-12,Grapes,Kalimati Market,420.0
-2023-10-19,Grapes,Kalimati Market,420.0
-2023-10-26,Grapes,Kalimati Market,420.0
-2023-10-05,Guava,Kalimati Market,125.0
-2023-10-12,Guava,Kalimati Market,125.0
-2023-10-19,Guava,Kalimati Market,125.0
-2023-10-26,Guava,Kalimati Market,125.0
-2023-10-05,Lemon,Kalimati Market,59.4467
-2023-10-12,Lemon,Kalimati Market,59.4467
-2023-10-19,Lemon,Kalimati Market,59.4467
-2023-10-26,Lemon,Kalimati Market,59.4467
-2023-10-05,Lime,Kalimati Market,235.6667
-2023-10-12,Lime,Kalimati Market,235.6667
-2023-10-19,Lime,Kalimati Market,235.6667
-2023-10-26,Lime,Kalimati Market,235.6667
-2023-09-04,Mango,Kalimati Market,235.0
-2023-09-11,Mango,Kalimati Market,235.0
-2023-09-18,Mango,Kalimati Market,235.0
-2023-09-25,Mango,Kalimati Market,235.0
-2023-10-05,Orange,Kalimati Market,160.5567
-2023-10-12,Orange,Kalimati Market,160.5567
-2023-10-19,Orange,Kalimati Market,160.5567
-2023-10-26,Orange,Kalimati Market,160.5567
-2023-10-05,Papaya,Kalimati Market,106.67
-2023-10-12,Papaya,Kalimati Market,106.67
-2023-10-19,Papaya,Kalimati Market,106.67
-2023-10-26,Papaya,Kalimati Market,106.67
-2023-10-05,Pear,Kalimati Market,161.1133
-2023-10-12,Pear,Kalimati Market,161.1133
-2023-10-19,Pear,Kalimati Market,161.1133
-2023-10-26,Pear,Kalimati Market,161.1133
-2023-10-05,Pomegranate,Kalimati Market,401.6667
-2023-10-12,Pomegranate,Kalimati Market,401.6667
-2023-10-19,Pomegranate,Kalimati Market,401.6667
-2023-10-26,Pomegranate,Kalimati Market,401.6667
-2022-11-02,Sweet Lime,Kalimati Market,166.6667
-2022-11-09,Sweet Lime,Kalimati Market,166.6667
-2022-11-16,Sweet Lime,Kalimati Market,166.6667
-2022-11-23,Sweet Lime,Kalimati Market,166.6667
-2023-10-05,Watermelon,Kalimati Market,56.67
-2023-10-12,Watermelon,Kalimati Market,56.67
-2023-10-19,Watermelon,Kalimati Market,56.67
-2023-10-26,Watermelon,Kalimati Market,56.67
+date,fruit_name,market,forecast_price,selected_model
+2026-05-01,Apple,台北二,60.9795,exponential_smoothing
+2026-05-08,Apple,台北二,60.9719,exponential_smoothing
+2026-05-15,Apple,台北二,60.9644,exponential_smoothing
+2026-05-22,Apple,台北二,60.9568,exponential_smoothing
+2026-05-01,Banana,台北二,34.4493,exponential_smoothing
+2026-05-08,Banana,台北二,34.427,exponential_smoothing
+2026-05-15,Banana,台北二,34.4048,exponential_smoothing
+2026-05-22,Banana,台北二,34.3825,exponential_smoothing
+2026-05-01,Grape,台北二,82.3812,exponential_smoothing
+2026-05-08,Grape,台北二,82.3722,exponential_smoothing
+2026-05-15,Grape,台北二,82.3632,exponential_smoothing
+2026-05-22,Grape,台北二,82.3542,exponential_smoothing
+2026-05-01,Orange,台北二,35.0834,arima_1_1_1
+2026-05-08,Orange,台北二,35.1046,arima_1_1_1
+2026-05-15,Orange,台北二,35.11,arima_1_1_1
+2026-05-22,Orange,台北二,35.1114,arima_1_1_1
+2026-05-01,Pear,台北二,65.229,arima_1_1_1
+2026-05-08,Pear,台北二,64.142,arima_1_1_1
+2026-05-15,Pear,台北二,63.6578,arima_1_1_1
+2026-05-22,Pear,台北二,63.4421,arima_1_1_1

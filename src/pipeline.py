@@ -9,6 +9,7 @@ from src.config import (
     PLAN_FILE,
     PRICE_FIGURE,
     PROCESSED_PRICE_FILE,
+    PROCUREMENT_CONSTRAINT_SUMMARY_FILE,
     PROCUREMENT_STRATEGY_COMPARISON_FILE,
     RISK_ANALYSIS_TABLE_FILE,
     RISK_FIGURE,
@@ -34,7 +35,11 @@ from src.features.seasonality import (
 )
 from src.features.volatility import build_risk_classification_table, build_risk_metrics
 from src.forecast.formal import build_formal_forecast
-from src.optimization.model import build_heuristic_procurement_plan, build_procurement_plan
+from src.optimization.model import (
+    build_heuristic_procurement_plan,
+    build_procurement_constraint_summary,
+    build_procurement_plan,
+)
 from src.visualization.charts import (
     save_price_chart,
     save_risk_comparison_chart,
@@ -101,6 +106,7 @@ def run_pipeline() -> None:
     optimization_results_df = build_optimization_results_table(plan_df)
     cost_comparison_df = build_cost_comparison_table(plan_df, heuristic_plan_df)
     strategy_comparison_df = build_strategy_comparison_table(plan_df)
+    constraint_summary_df = build_procurement_constraint_summary(plan_df)
 
     export_csv(clean_df, PROCESSED_PRICE_FILE)
     export_csv(stats_df, STATS_FILE)
@@ -118,6 +124,7 @@ def run_pipeline() -> None:
     export_csv(optimization_results_df, OPTIMIZATION_RESULTS_TABLE_FILE)
     export_csv(cost_comparison_df, OPTIMIZATION_COST_COMPARISON_FILE)
     export_csv(strategy_comparison_df, PROCUREMENT_STRATEGY_COMPARISON_FILE)
+    export_csv(constraint_summary_df, PROCUREMENT_CONSTRAINT_SUMMARY_FILE)
     save_price_chart(clean_df, PRICE_FIGURE)
     save_risk_comparison_chart(risk_df, RISK_FIGURE)
     save_seasonality_chart(seasonality_profile_df, SEASONALITY_FIGURE)
@@ -150,6 +157,7 @@ def run_pipeline() -> None:
     print(f"Optimization results table: {OPTIMIZATION_RESULTS_TABLE_FILE}")
     print(f"Optimization cost comparison: {OPTIMIZATION_COST_COMPARISON_FILE}")
     print(f"Procurement strategy comparison: {PROCUREMENT_STRATEGY_COMPARISON_FILE}")
+    print(f"Procurement constraint summary: {PROCUREMENT_CONSTRAINT_SUMMARY_FILE}")
     print(f"Chart: {PRICE_FIGURE}")
     print(f"Risk chart: {RISK_FIGURE}")
     print(f"Seasonality chart: {SEASONALITY_FIGURE}")

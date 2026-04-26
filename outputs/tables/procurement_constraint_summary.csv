@@ -1,0 +1,6 @@
+fruit_name,risk_level,avg_purchase_cap_kg,avg_safety_stock_target_kg,max_inventory_kg,avg_procurement_change_kg,total_stability_penalty_cost
+Grape,high,82.5,0.0,0.0,0.0,0.0
+Pear,high,110.0,0.0,0.0,0.0,0.0
+Apple,low,192.0,22.5,30.0,15.0,104.84
+Orange,low,168.0,19.6875,52.5,13.125,65.07
+Banana,medium,155.25,8.625,11.5,5.75,46.54

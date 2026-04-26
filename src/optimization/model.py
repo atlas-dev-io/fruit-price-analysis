@@ -13,6 +13,7 @@ BASE_DEMAND = {
 
 RISK_PENALTY_FACTOR = 0.08
 HOLDING_COST_FACTOR = 0.002
+SMOOTHING_PENALTY_FACTOR = 0.03
 PURCHASE_CAP_MULTIPLIER = {
     "high": 1.1,
     "medium": 1.35,
@@ -22,6 +23,11 @@ INVENTORY_CAP_MULTIPLIER = {
     "high": 0.25,
     "medium": 0.6,
     "low": 1.0,
+}
+SAFETY_STOCK_MULTIPLIER = {
+    "high": 0.0,
+    "medium": 0.1,
+    "low": 0.25,
 }
 
 
@@ -52,6 +58,7 @@ def _fallback_plan(group: pd.DataFrame, risk_info: dict, demand: float) -> pd.Da
     rows = []
     risk_level = risk_info["risk_level"]
     cap = demand * PURCHASE_CAP_MULTIPLIER[risk_level]
+    safety_stock = demand * SAFETY_STOCK_MULTIPLIER[risk_level]
     for row in group.itertuples():
         purchased_kg = min(demand, cap)
         rows.append(
@@ -64,8 +71,10 @@ def _fallback_plan(group: pd.DataFrame, risk_info: dict, demand: float) -> pd.Da
                 "composite_risk_score": round(float(risk_info["composite_risk_score"]), 4),
                 "period_demand_kg": round(demand, 2),
                 "purchase_cap_kg": round(cap, 2),
+                "safety_stock_target_kg": round(safety_stock, 2),
                 "recommended_quantity_kg": round(purchased_kg, 2),
                 "ending_inventory_kg": 0.0,
+                "procurement_change_kg": 0.0,
                 "purchase_cost": round(float(purchased_kg * row.forecast_price), 2),
                 "risk_penalty_cost": round(
                     float(
@@ -77,6 +86,7 @@ def _fallback_plan(group: pd.DataFrame, risk_info: dict, demand: float) -> pd.Da
                     2,
                 ),
                 "holding_cost": 0.0,
+                "stability_penalty_cost": 0.0,
                 "optimization_status": "fallback",
                 "strategy": "回退方案：按需采购，未使用线性规划最优解",
             }
@@ -91,15 +101,18 @@ def _optimize_one_fruit(group: pd.DataFrame, risk_info: dict, demand: float) -> 
     risk_percentile = float(risk_info["risk_percentile"])
     purchase_cap = demand * PURCHASE_CAP_MULTIPLIER[risk_level]
     inventory_cap = demand * INVENTORY_CAP_MULTIPLIER[risk_level]
+    safety_stock = demand * SAFETY_STOCK_MULTIPLIER[risk_level]
     avg_forecast_price = float(ordered["forecast_price"].mean())
     holding_cost_per_kg = avg_forecast_price * HOLDING_COST_FACTOR
+    smoothing_cost_per_kg = avg_forecast_price * SMOOTHING_PENALTY_FACTOR
 
     purchase_costs = ordered["forecast_price"].to_numpy(dtype=float)
     risk_penalty_per_kg = purchase_costs * RISK_PENALTY_FACTOR * risk_percentile
     inventory_costs = np.full(periods, holding_cost_per_kg, dtype=float)
-    objective = np.concatenate([purchase_costs + risk_penalty_per_kg, inventory_costs])
+    smoothing_costs = np.full(max(periods - 1, 0), smoothing_cost_per_kg, dtype=float)
+    objective = np.concatenate([purchase_costs + risk_penalty_per_kg, inventory_costs, smoothing_costs])
 
-    variable_count = periods * 2
+    variable_count = periods * 2 + max(periods - 1, 0)
     a_eq = np.zeros((periods, variable_count), dtype=float)
     b_eq = np.full(periods, demand, dtype=float)
 
@@ -112,20 +125,50 @@ def _optimize_one_fruit(group: pd.DataFrame, risk_info: dict, demand: float) -> 
             previous_inventory_idx = periods + idx - 1
             a_eq[idx, previous_inventory_idx] = 1.0
 
-    bounds = [(0.0, purchase_cap)] * periods + [(0.0, inventory_cap)] * periods
-    result = linprog(c=objective, A_eq=a_eq, b_eq=b_eq, bounds=bounds, method="highs")
+    a_ub_rows = []
+    b_ub_rows = []
+
+    for idx in range(1, periods):
+        change_idx = periods * 2 + idx - 1
+        row_up = np.zeros(variable_count, dtype=float)
+        row_up[idx] = 1.0
+        row_up[idx - 1] = -1.0
+        row_up[change_idx] = -1.0
+        a_ub_rows.append(row_up)
+        b_ub_rows.append(0.0)
+
+        row_down = np.zeros(variable_count, dtype=float)
+        row_down[idx] = -1.0
+        row_down[idx - 1] = 1.0
+        row_down[change_idx] = -1.0
+        a_ub_rows.append(row_down)
+        b_ub_rows.append(0.0)
+
+    a_ub = np.array(a_ub_rows, dtype=float) if a_ub_rows else None
+    b_ub = np.array(b_ub_rows, dtype=float) if b_ub_rows else None
+
+    bounds = [(0.0, purchase_cap)] * periods
+    for idx in range(periods):
+        lower_bound = safety_stock if idx < periods - 1 else 0.0
+        bounds.append((lower_bound, inventory_cap))
+    bounds.extend([(0.0, None)] * max(periods - 1, 0))
+
+    result = linprog(c=objective, A_eq=a_eq, b_eq=b_eq, A_ub=a_ub, b_ub=b_ub, bounds=bounds, method="highs")
     if not result.success:
         return _fallback_plan(ordered, risk_info, demand)
 
     purchases = result.x[:periods]
     inventories = result.x[periods:]
+    changes = result.x[periods * 2 :]
     rows = []
     for idx, row in enumerate(ordered.itertuples()):
         purchase_qty = _clean_numeric(purchases[idx])
         ending_inventory = _clean_numeric(inventories[idx])
+        procurement_change = _clean_numeric(changes[idx - 1]) if idx > 0 else 0.0
         purchase_cost = float(purchase_qty * row.forecast_price)
         risk_penalty_cost = float(purchase_qty * risk_penalty_per_kg[idx])
         holding_cost = float(ending_inventory * holding_cost_per_kg)
+        stability_penalty_cost = float(procurement_change * smoothing_cost_per_kg)
         rows.append(
             {
                 "date": row.date,
@@ -136,11 +179,14 @@ def _optimize_one_fruit(group: pd.DataFrame, risk_info: dict, demand: float) -> 
                 "composite_risk_score": round(float(risk_info["composite_risk_score"]), 4),
                 "period_demand_kg": round(demand, 2),
                 "purchase_cap_kg": round(purchase_cap, 2),
+                "safety_stock_target_kg": round(safety_stock if idx < periods - 1 else 0.0, 2),
                 "recommended_quantity_kg": round(purchase_qty, 2),
                 "ending_inventory_kg": round(ending_inventory, 2),
+                "procurement_change_kg": round(procurement_change, 2),
                 "purchase_cost": round(purchase_cost, 2),
                 "risk_penalty_cost": round(risk_penalty_cost, 2),
                 "holding_cost": round(holding_cost, 2),
+                "stability_penalty_cost": round(stability_penalty_cost, 2),
                 "optimization_status": "optimal",
                 "strategy": _build_strategy(
                     risk_level=risk_level,
@@ -176,10 +222,10 @@ def build_heuristic_procurement_plan(
     risk_lookup = risk_df.set_index("fruit_name").to_dict("index")
     rows = []
 
-    for row in forecast_df.itertuples():
-        risk_info = risk_lookup[row.fruit_name]
+    for fruit_name, group in forecast_df.groupby("fruit_name"):
+        risk_info = risk_lookup[fruit_name]
         risk_level = str(risk_info["risk_level"])
-        demand = float(BASE_DEMAND.get(row.fruit_name, 80))
+        demand = float(BASE_DEMAND.get(fruit_name, 80))
 
         if risk_level == "high":
             multiplier = 1.0
@@ -191,33 +237,57 @@ def build_heuristic_procurement_plan(
             multiplier = 1.1
             strategy = "启发式：稳定品类适度提前采购"
 
-        purchase_qty = demand * multiplier
-        rows.append(
-            {
-                "date": row.date,
-                "fruit_name": row.fruit_name,
-                "forecast_price": row.forecast_price,
-                "risk_level": risk_level,
-                "risk_percentile": round(float(risk_info["risk_percentile"]), 4),
-                "composite_risk_score": round(float(risk_info["composite_risk_score"]), 4),
-                "period_demand_kg": round(demand, 2),
-                "purchase_cap_kg": round(demand * PURCHASE_CAP_MULTIPLIER[risk_level], 2),
-                "recommended_quantity_kg": round(purchase_qty, 2),
-                "ending_inventory_kg": round(max(purchase_qty - demand, 0.0), 2),
-                "purchase_cost": round(float(purchase_qty * row.forecast_price), 2),
-                "risk_penalty_cost": round(
-                    float(
-                        purchase_qty
-                        * row.forecast_price
-                        * RISK_PENALTY_FACTOR
-                        * float(risk_info["risk_percentile"])
+        ordered = group.sort_values("date").reset_index(drop=True)
+        for idx, row in enumerate(ordered.itertuples()):
+            purchase_qty = demand * multiplier
+            rows.append(
+                {
+                    "date": row.date,
+                    "fruit_name": fruit_name,
+                    "forecast_price": row.forecast_price,
+                    "risk_level": risk_level,
+                    "risk_percentile": round(float(risk_info["risk_percentile"]), 4),
+                    "composite_risk_score": round(float(risk_info["composite_risk_score"]), 4),
+                    "period_demand_kg": round(demand, 2),
+                    "purchase_cap_kg": round(demand * PURCHASE_CAP_MULTIPLIER[risk_level], 2),
+                    "safety_stock_target_kg": round(
+                        demand * SAFETY_STOCK_MULTIPLIER[risk_level] if idx < len(ordered) - 1 else 0.0,
+                        2,
                     ),
-                    2,
-                ),
-                "holding_cost": 0.0,
-                "optimization_status": "heuristic_baseline",
-                "strategy": strategy,
-            }
-        )
+                    "recommended_quantity_kg": round(purchase_qty, 2),
+                    "ending_inventory_kg": round(max(purchase_qty - demand, 0.0), 2),
+                    "procurement_change_kg": 0.0,
+                    "purchase_cost": round(float(purchase_qty * row.forecast_price), 2),
+                    "risk_penalty_cost": round(
+                        float(
+                            purchase_qty
+                            * row.forecast_price
+                            * RISK_PENALTY_FACTOR
+                            * float(risk_info["risk_percentile"])
+                        ),
+                        2,
+                    ),
+                    "holding_cost": 0.0,
+                    "stability_penalty_cost": 0.0,
+                    "optimization_status": "heuristic_baseline",
+                    "strategy": strategy,
+                }
+            )
 
     return pd.DataFrame(rows).sort_values(["date", "fruit_name"]).reset_index(drop=True)
+
+
+def build_procurement_constraint_summary(plan_df: pd.DataFrame) -> pd.DataFrame:
+    return (
+        plan_df.groupby("fruit_name", as_index=False)
+        .agg(
+            risk_level=("risk_level", "first"),
+            avg_purchase_cap_kg=("purchase_cap_kg", "mean"),
+            avg_safety_stock_target_kg=("safety_stock_target_kg", "mean"),
+            max_inventory_kg=("ending_inventory_kg", "max"),
+            avg_procurement_change_kg=("procurement_change_kg", "mean"),
+            total_stability_penalty_cost=("stability_penalty_cost", "sum"),
+        )
+        .sort_values(["risk_level", "fruit_name"])
+        .reset_index(drop=True)
+    )

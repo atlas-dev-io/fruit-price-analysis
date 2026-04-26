@@ -73,11 +73,15 @@ def build_optimization_results_table(plan_df: pd.DataFrame) -> pd.DataFrame:
             "risk_level",
             "forecast_price",
             "period_demand_kg",
+            "purchase_cap_kg",
+            "safety_stock_target_kg",
             "recommended_quantity_kg",
             "ending_inventory_kg",
+            "procurement_change_kg",
             "purchase_cost",
             "risk_penalty_cost",
             "holding_cost",
+            "stability_penalty_cost",
             "strategy",
         ]
     ].copy()

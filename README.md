@@ -100,18 +100,18 @@ make test
 
 完整说明见：
 
-- [Outputs Guide](/home/ethan/Project/fruit-price-analysis/docs/outputs.md:1)
+- [Outputs Guide](docs/outputs.md)
 
 ## 数据来源与获取
 
 项目当前使用的原始数据和获取方式说明见：
 
-- [Data Sources](/home/ethan/Project/fruit-price-analysis/docs/data_sources.md:1)
+- [Data Sources](docs/data_sources.md)
 
 ## 设计与开发文档
 
-- [Architecture](/home/ethan/Project/fruit-price-analysis/docs/architecture.md:1)
-- [Development Guide](/home/ethan/Project/fruit-price-analysis/docs/development.md:1)
+- [Architecture](docs/architecture.md)
+- [Development Guide](docs/development.md)
 
 ## 当前状态
 
@@ -132,4 +132,4 @@ conda run -n fruit python -m unittest discover -s tests
 
 ## License
 
-本项目使用 [MIT License](/home/ethan/Project/fruit-price-analysis/LICENSE:1)。
+本项目使用 [MIT License](LICENSE)。

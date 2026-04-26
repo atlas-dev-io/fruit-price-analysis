@@ -55,7 +55,7 @@ tests/              minimal regression tests
 - Figures belong in `outputs/figures/`
 - Tables belong in `outputs/tables/`
 - Narrative reports belong in `outputs/reports/`
-- Output descriptions belong in [outputs.md](/home/ethan/Project/fruit-price-analysis/docs/outputs.md:1)
+- Output descriptions belong in [outputs.md](outputs.md)
 
 ## Validation
 

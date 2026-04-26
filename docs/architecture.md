@@ -77,7 +77,7 @@ Responsibilities:
 Responsibilities:
 
 - export figures
-- export thesis-neutral project tables
+- export project tables
 - generate narrative markdown reports
 
 ## Data Flow

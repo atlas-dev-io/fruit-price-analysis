@@ -112,16 +112,17 @@ fruit-price-analysis/
 
 当前仓库处于“论文主数据已接入、主流程可运行”的阶段：
 
-- 已有内容：开题报告、论文初稿、可运行分析代码、数据准备脚本、结果输出表和图。
+- 已有内容：开题报告、论文初稿、可运行分析代码、数据准备脚本、论文友好型结果输出、最小测试集。
 - 当前主数据：`data/raw/taiwan_main_fruits_taipei2_2017_to_present.csv`
 - 当前标准化数据：`data/processed/thesis_main_dataset_en.csv`
 - 当前研究对象：台北二市场的 5 个水果品类 `Apple`、`Banana`、`Orange`、`Grape`、`Pear`
 - 当前输出口径：周度预测与周度采购建议
-- 仍缺少内容：更严格的风险分级、正式采购优化模型、测试和论文结果的进一步固化
+- 当前采购模块：已升级为线性规划优化模型
+- 仍缺少内容：更深入的论文论证和可选的展示层开发
 
-因此，这个仓库现在更准确的状态是“论文研究已工程化为可运行流水线，但尚未完成最终版优化模型”。
+因此，这个仓库现在更准确的状态是“论文研究已经工程化为可运行、可测试、可导出论文结果的分析流水线”。
 
-## 现在怎么运行
+## 统一运行方式
 
 1. 安装依赖
 
@@ -129,24 +130,46 @@ fruit-price-analysis/
 conda run -n fruit pip install -r requirements.txt
 ```
 
-2. 运行主流程
+2. 如果需要先重建论文主数据
+
+```bash
+conda run -n fruit python scripts/build_taiwan_thesis_dataset.py
+```
+
+3. 运行主流程
 
 ```bash
 conda run -n fruit python main.py
 ```
 
-3. 运行后会生成
+4. 或者直接使用统一命令
+
+```bash
+make build-data
+make run
+make test
+```
+
+## 运行后会生成
 
 - `data/processed/fruit_prices_cleaned.csv`
 - `outputs/tables/descriptive_stats.csv`
 - `outputs/tables/risk_metrics.csv`
+- `outputs/tables/risk_analysis_table.csv`
 - `outputs/tables/forecast_prices.csv`
 - `outputs/tables/forecast_model_metrics.csv`
 - `outputs/tables/forecast_model_selection.csv`
+- `outputs/tables/model_evaluation_table.csv`
+- `outputs/tables/forecast_results_table.csv`
 - `outputs/tables/procurement_plan.csv`
+- `outputs/tables/optimization_results_table.csv`
+- `outputs/tables/optimization_cost_comparison.csv`
+- `outputs/tables/procurement_strategy_comparison.csv`
 - `outputs/figures/price_trends.png`
+- `outputs/figures/risk_comparison.png`
 - `outputs/reports/summary.md`
 - `outputs/reports/thesis_main_dataset_summary.md`
+- `outputs/reports/thesis_results.md`
 
 ## 当前实现做了什么
 
@@ -154,16 +177,30 @@ conda run -n fruit python main.py
 
 - 读取 `data/processed/thesis_main_dataset_en.csv`
 - 对台北二市场的 5 个水果品类做统一清洗与聚合
-- 计算描述性统计和风险指标
-- 比较 `ExponentialSmoothing` 与 `ARIMA(1,1,1)` 的预测效果
+- 计算描述性统计、综合风险分数和风险分级
+- 比较 `ExponentialSmoothing`、多组 `ARIMA` 和候选 `SARIMA` 的预测效果
 - 生成未来 4 个周度周期的价格预测
-- 输出基于风险等级的采购建议
-- 导出图表、摘要和中间结果表
+- 用线性规划模型生成采购方案
+- 导出论文可直接引用的图、表和结论摘要
 
 说明：
 
-- 当前预测模块已经切换到正式时间序列模型选择逻辑，但还不是最终论文版本。
-- 当前采购模块仍以规则化建议为主，后续需要升级为正式优化模型。
+- 当前预测模块已经具备周度评估窗口、参数搜索和模型选择结果。
+- 当前采购模块已经切换到带需求、库存和采购上限约束的线性规划版本。
+
+## 测试
+
+当前仓库已包含 `tests/` 目录下的最小测试，覆盖：
+
+- 风险分级输出关键字段
+- 预测模块的非空输出与周度模型选择
+- 采购优化模块的约束结果与基线方案生成
+
+运行命令：
+
+```bash
+conda run -n fruit python -m unittest discover -s tests
+```
 
 ## 当前数据口径
 
@@ -211,12 +248,14 @@ date,fruit_name,market,price,unit
 2. 运行数据构建脚本生成 `data/processed/thesis_main_dataset_en.csv`
 3. 重新运行 `conda run -n fruit python main.py`
 
+## License
+
+本项目使用 [MIT License](/home/ethan/Project/fruit-price-analysis/LICENSE:1)。
+
 ## 下一步建议
 
-最直接的下一步是先补齐最小可运行骨架：
+如果继续往论文最终稿推进，最值得优先做的是：
 
-1. 用真实官方数据替换示例数据。
-2. 重做风险分级，让不同水果形成真正的差异化策略。
-3. 强化 `ARIMA` 与指数平滑的模型评估和参数选择。
-4. 将采购策略从启发式规则升级为约束优化模型。
-5. 增加测试和统一运行脚本。
+1. 把成本、风险和库存约束的业务口径进一步细化。
+2. 增加对模型误差和采购收益的论文解释。
+3. 在论文正文中直接引用 `outputs/reports/thesis_results.md` 和新增图表。

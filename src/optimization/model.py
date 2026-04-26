@@ -1,7 +1,5 @@
 import pandas as pd
 
-from src.features.volatility import classify_risk
-
 
 BASE_DEMAND = {
     "Apple": 120,
@@ -21,7 +19,7 @@ def build_procurement_plan(
     for _, row in forecast_df.iterrows():
         fruit_name = row["fruit_name"]
         risk_info = risk_lookup[fruit_name]
-        risk_level = classify_risk(risk_info["coefficient_of_variation"])
+        risk_level = risk_info["risk_level"]
         demand = BASE_DEMAND.get(fruit_name, 80)
 
         if risk_level == "high":
@@ -40,6 +38,7 @@ def build_procurement_plan(
                 "fruit_name": fruit_name,
                 "forecast_price": row["forecast_price"],
                 "risk_level": risk_level,
+                "composite_risk_score": round(float(risk_info["composite_risk_score"]), 4),
                 "recommended_quantity_kg": round(demand * multiplier, 2),
                 "strategy": strategy,
             }

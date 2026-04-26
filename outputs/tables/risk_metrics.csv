@@ -1,6 +1,6 @@
-fruit_name,avg_price,std_price,coefficient_of_variation,max_drawdown,avg_return,return_volatility
-Pear,67.2861,44.0866,0.6552,0.9955,0.0836,0.9827
-Banana,38.5235,18.8335,0.4889,0.893,0.0037,0.092
-Grape,113.9185,53.3455,0.4683,0.8908,0.0201,0.2066
-Orange,30.6275,11.4764,0.3747,0.9014,0.0128,0.1964
-Apple,65.1387,19.031,0.2922,0.8735,0.0239,0.2295
+fruit_name,avg_price,std_price,coefficient_of_variation,max_drawdown,avg_return,return_volatility,coefficient_of_variation_zscore,coefficient_of_variation_weighted,max_drawdown_zscore,max_drawdown_weighted,return_volatility_zscore,return_volatility_weighted,composite_risk_score,risk_percentile,risk_level,risk_reason
+Pear,67.2861,44.0866,0.6552,0.9955,0.0836,0.9827,1.6347,0.6539,1.9556,0.5867,1.9786,0.5936,1.8342,1.0,high,high risk because composite score 1.8342 is driven most by return_volatility being well above the cross-fruit average.
+Grape,113.9185,53.3455,0.4683,0.8908,0.0201,0.2066,0.102,0.0408,-0.4629,-0.1389,-0.4161,-0.1248,-0.2229,0.8,high,high risk because composite score -0.2229 is driven most by variation being above the cross-fruit average.
+Banana,38.5235,18.8335,0.4889,0.893,0.0037,0.092,0.2709,0.1084,-0.4121,-0.1236,-0.7697,-0.2309,-0.2461,0.6,medium,medium risk because composite score -0.2461 is driven most by variation being above the cross-fruit average.
+Orange,30.6275,11.4764,0.3747,0.9014,0.0128,0.1964,-0.6655,-0.2662,-0.2181,-0.0654,-0.4475,-0.1342,-0.4658,0.4,low,low risk because composite score -0.4658 is driven most by drawdown being close to the cross-fruit average.
+Apple,65.1387,19.031,0.2922,0.8735,0.0239,0.2295,-1.3421,-0.5368,-0.8625,-0.2588,-0.3454,-0.1036,-0.8992,0.2,low,low risk because composite score -0.8992 is driven most by return_volatility being close to the cross-fruit average.

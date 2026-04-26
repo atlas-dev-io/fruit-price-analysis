@@ -30,7 +30,11 @@ def _build_summary(stats_df, risk_df, plan_df, selection_df) -> str:
     forecast_start = str(plan_df["date"].min().date())
     forecast_end = str(plan_df["date"].max().date())
     model_summary = ", ".join(
-        f"{row.fruit_name}:{row.selected_model}"
+        f"{row.fruit_name}:{row.selected_model}[{row.selected_params}]"
+        for row in selection_df.itertuples()
+    )
+    eval_window = ", ".join(
+        f"{row.fruit_name}:{row.test_start_date} to {row.test_end_date}"
         for row in selection_df.itertuples()
     )
 
@@ -41,6 +45,7 @@ def _build_summary(stats_df, risk_df, plan_df, selection_df) -> str:
 - Most stable fruit in the sample: {stable}
 - Highest-volatility fruit in the sample: {volatile}
 - Forecast window: {forecast_start} to {forecast_end}
+- Weekly evaluation window by fruit: {eval_window}
 - Selected forecast model by fruit: {model_summary}
 - Data note: this run uses the thesis dataset in `data/processed/thesis_main_dataset_en.csv`
 """

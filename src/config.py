@@ -21,8 +21,16 @@ STATS_FILE = TABLES_DIR / "descriptive_stats.csv"
 RISK_FILE = TABLES_DIR / "risk_metrics.csv"
 RISK_CLASSIFICATION_FILE = TABLES_DIR / "risk_classification.csv"
 PLAN_FILE = TABLES_DIR / "procurement_plan.csv"
+RISK_ANALYSIS_TABLE_FILE = TABLES_DIR / "risk_analysis_table.csv"
+MODEL_EVALUATION_TABLE_FILE = TABLES_DIR / "model_evaluation_table.csv"
+FORECAST_RESULTS_TABLE_FILE = TABLES_DIR / "forecast_results_table.csv"
+OPTIMIZATION_RESULTS_TABLE_FILE = TABLES_DIR / "optimization_results_table.csv"
+OPTIMIZATION_COST_COMPARISON_FILE = TABLES_DIR / "optimization_cost_comparison.csv"
+PROCUREMENT_STRATEGY_COMPARISON_FILE = TABLES_DIR / "procurement_strategy_comparison.csv"
 SUMMARY_FILE = REPORTS_DIR / "summary.md"
+THESIS_RESULTS_FILE = REPORTS_DIR / "thesis_results.md"
 PRICE_FIGURE = FIGURES_DIR / "price_trends.png"
+RISK_FIGURE = FIGURES_DIR / "risk_comparison.png"
 
 
 def ensure_directories() -> None:

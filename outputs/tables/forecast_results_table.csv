@@ -1,0 +1,21 @@
+date,fruit_name,forecast_price,selected_model,selected_family,selected_params,data_frequency
+2026-05-01,Apple,58.2399,arima_0_1_1,ARIMA,"order=(0, 1, 1)",weekly
+2026-05-08,Apple,58.2399,arima_0_1_1,ARIMA,"order=(0, 1, 1)",weekly
+2026-05-15,Apple,58.2399,arima_0_1_1,ARIMA,"order=(0, 1, 1)",weekly
+2026-05-22,Apple,58.2399,arima_0_1_1,ARIMA,"order=(0, 1, 1)",weekly
+2026-05-01,Banana,67.456,arima_0_1_1,ARIMA,"order=(0, 1, 1)",weekly
+2026-05-08,Banana,67.456,arima_0_1_1,ARIMA,"order=(0, 1, 1)",weekly
+2026-05-15,Banana,67.456,arima_0_1_1,ARIMA,"order=(0, 1, 1)",weekly
+2026-05-22,Banana,67.456,arima_0_1_1,ARIMA,"order=(0, 1, 1)",weekly
+2026-05-01,Grape,116.9297,arima_2_1_0,ARIMA,"order=(2, 1, 0)",weekly
+2026-05-08,Grape,116.9921,arima_2_1_0,ARIMA,"order=(2, 1, 0)",weekly
+2026-05-15,Grape,117.0022,arima_2_1_0,ARIMA,"order=(2, 1, 0)",weekly
+2026-05-22,Grape,117.0017,arima_2_1_0,ARIMA,"order=(2, 1, 0)",weekly
+2026-05-01,Orange,41.1378,sarima_1_1_1_0_1_1_4,SARIMA,"order=(1, 1, 1);seasonal_order=(0, 1, 1, 4)",weekly
+2026-05-08,Orange,41.2079,sarima_1_1_1_0_1_1_4,SARIMA,"order=(1, 1, 1);seasonal_order=(0, 1, 1, 4)",weekly
+2026-05-15,Orange,41.5153,sarima_1_1_1_0_1_1_4,SARIMA,"order=(1, 1, 1);seasonal_order=(0, 1, 1, 4)",weekly
+2026-05-22,Orange,41.4077,sarima_1_1_1_0_1_1_4,SARIMA,"order=(1, 1, 1);seasonal_order=(0, 1, 1, 4)",weekly
+2026-05-01,Pear,64.3565,exponential_smoothing,ETS,trend=add;seasonal=None,weekly
+2026-05-08,Pear,64.3381,exponential_smoothing,ETS,trend=add;seasonal=None,weekly
+2026-05-15,Pear,64.3197,exponential_smoothing,ETS,trend=add;seasonal=None,weekly
+2026-05-22,Pear,64.3013,exponential_smoothing,ETS,trend=add;seasonal=None,weekly

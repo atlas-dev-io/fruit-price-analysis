@@ -25,3 +25,32 @@ def save_price_chart(df: pd.DataFrame, output_path) -> None:
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
     plt.close()
+
+
+def save_risk_comparison_chart(risk_df: pd.DataFrame, output_path) -> None:
+    ordered = risk_df.sort_values("composite_risk_score", ascending=False).reset_index(drop=True)
+    colors = {"high": "#c0392b", "medium": "#f39c12", "low": "#27ae60"}
+
+    plt.figure(figsize=(10, 6))
+    bars = plt.bar(
+        ordered["fruit_name"],
+        ordered["composite_risk_score"],
+        color=[colors.get(level, "#7f8c8d") for level in ordered["risk_level"]],
+    )
+    plt.title("Composite Risk Comparison by Fruit")
+    plt.xlabel("Fruit")
+    plt.ylabel("Composite Risk Score")
+
+    for bar, level in zip(bars, ordered["risk_level"]):
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height(),
+            level,
+            ha="center",
+            va="bottom",
+            fontsize=9,
+        )
+
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()

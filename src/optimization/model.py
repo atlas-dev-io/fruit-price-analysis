@@ -168,3 +168,56 @@ def build_procurement_plan(
     return pd.concat(plan_frames, ignore_index=True).sort_values(
         ["date", "fruit_name"]
     ).reset_index(drop=True)
+
+
+def build_heuristic_procurement_plan(
+    forecast_df: pd.DataFrame, risk_df: pd.DataFrame
+) -> pd.DataFrame:
+    risk_lookup = risk_df.set_index("fruit_name").to_dict("index")
+    rows = []
+
+    for row in forecast_df.itertuples():
+        risk_info = risk_lookup[row.fruit_name]
+        risk_level = str(risk_info["risk_level"])
+        demand = float(BASE_DEMAND.get(row.fruit_name, 80))
+
+        if risk_level == "high":
+            multiplier = 1.0
+            strategy = "启发式：高风险品类按需滚动采购"
+        elif risk_level == "medium":
+            multiplier = 1.05
+            strategy = "启发式：中风险品类小幅提前采购"
+        else:
+            multiplier = 1.1
+            strategy = "启发式：稳定品类适度提前采购"
+
+        purchase_qty = demand * multiplier
+        rows.append(
+            {
+                "date": row.date,
+                "fruit_name": row.fruit_name,
+                "forecast_price": row.forecast_price,
+                "risk_level": risk_level,
+                "risk_percentile": round(float(risk_info["risk_percentile"]), 4),
+                "composite_risk_score": round(float(risk_info["composite_risk_score"]), 4),
+                "period_demand_kg": round(demand, 2),
+                "purchase_cap_kg": round(demand * PURCHASE_CAP_MULTIPLIER[risk_level], 2),
+                "recommended_quantity_kg": round(purchase_qty, 2),
+                "ending_inventory_kg": round(max(purchase_qty - demand, 0.0), 2),
+                "purchase_cost": round(float(purchase_qty * row.forecast_price), 2),
+                "risk_penalty_cost": round(
+                    float(
+                        purchase_qty
+                        * row.forecast_price
+                        * RISK_PENALTY_FACTOR
+                        * float(risk_info["risk_percentile"])
+                    ),
+                    2,
+                ),
+                "holding_cost": 0.0,
+                "optimization_status": "heuristic_baseline",
+                "strategy": strategy,
+            }
+        )
+
+    return pd.DataFrame(rows).sort_values(["date", "fruit_name"]).reset_index(drop=True)

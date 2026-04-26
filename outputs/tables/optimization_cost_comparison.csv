@@ -1,0 +1,6 @@
+fruit_name,total_purchase_cost_optimized,total_risk_penalty_optimized,total_holding_cost_optimized,total_cost_optimized,total_purchase_cost_heuristic,total_risk_penalty_heuristic,total_holding_cost_heuristic,total_cost_heuristic,cost_saving,cost_saving_rate
+Apple,27955.16,447.28,0.0,28402.44,30750.68,492.0,0.0,31242.68,2840.24,0.0909
+Banana,31029.76,1489.44,0.0,32519.199999999997,32581.24,1563.88,0.0,34145.12,1625.92,0.0476
+Grape,35094.44,2246.04,0.0,37340.479999999996,35094.44,2246.04,0.0,37340.479999999996,0.0,0.0
+Orange,17318.0,554.17,12.15,17884.32,19088.54,610.83,0.0,19699.370000000003,1815.05,0.0921
+Pear,25731.56,2058.52,0.0,27790.08,25731.56,2058.52,0.0,27790.08,0.0,0.0

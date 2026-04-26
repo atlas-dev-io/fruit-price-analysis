@@ -167,3 +167,47 @@ Using Taiwan Taipei Second Market data for five fruit categories, the analysis s
 
 {strategy_lines}
 """
+
+
+def build_model_justification_report(stationarity_df: pd.DataFrame, selection_df: pd.DataFrame) -> str:
+    lines = [
+        "# Forecast Model Justification",
+        "",
+        "## Modeling Scope",
+        "",
+        (
+            "The ARIMA search space is limited to low-order weekly models: (0,1,1), (1,1,0), "
+            "(1,1,1), (2,1,0), and (2,1,1). This keeps the thesis model set interpretable while "
+            "still allowing short-memory autoregressive and moving-average structures. SARIMA is not "
+            "searched exhaustively; it is only evaluated for series with stronger measured seasonality, "
+            "using two targeted weekly seasonal candidates."
+        ),
+        "",
+        "## Stationarity And Selection Notes",
+        "",
+    ]
+
+    merged = selection_df.merge(
+        stationarity_df[
+            [
+                "fruit_name",
+                "level_adf_pvalue",
+                "diff1_adf_pvalue",
+                "seasonality_candidate",
+            ]
+        ],
+        on="fruit_name",
+        how="left",
+        suffixes=("", "_stationarity"),
+    )
+
+    for row in merged.itertuples():
+        seasonality_flag = getattr(row, "seasonality_candidate_stationarity", row.seasonality_candidate)
+        seasonality_text = "yes" if seasonality_flag else "no"
+        lines.append(
+            f"- {row.fruit_name}: selected {row.selected_model} [{row.selected_params}], "
+            f"ADF(level)={row.level_adf_pvalue}, ADF(diff1)={row.diff1_adf_pvalue}, "
+            f"seasonality_candidate={seasonality_text}."
+        )
+
+    return "\n".join(lines) + "\n"

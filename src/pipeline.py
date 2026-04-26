@@ -4,6 +4,7 @@ from src.config import (
     FORECAST_SELECTION_FILE,
     FORECAST_RESULTS_TABLE_FILE,
     MODEL_EVALUATION_TABLE_FILE,
+    MODEL_JUSTIFICATION_REPORT_FILE,
     OPTIMIZATION_COST_COMPARISON_FILE,
     OPTIMIZATION_RESULTS_TABLE_FILE,
     PLAN_FILE,
@@ -20,6 +21,7 @@ from src.config import (
     SEASONALITY_PROFILE_FILE,
     SEASONALITY_REPORT_FILE,
     STATS_FILE,
+    STATIONARITY_TESTS_FILE,
     SUMMARY_FILE,
     THESIS_RESULTS_FILE,
     THESIS_MAIN_DATASET_FILE,
@@ -48,6 +50,7 @@ from src.visualization.charts import (
 from src.visualization.export import (
     build_cost_comparison_table,
     build_forecast_results_table,
+    build_model_justification_report,
     build_model_evaluation_table,
     build_optimization_results_table,
     build_risk_analysis_table,
@@ -97,7 +100,7 @@ def run_pipeline() -> None:
     seasonality_profile_df = build_seasonality_profile(clean_df)
     risk_df = build_risk_metrics(clean_df)
     risk_classification_df = build_risk_classification_table(risk_df)
-    forecast_df, metrics_df, selection_df = build_formal_forecast(clean_df, periods=4)
+    forecast_df, metrics_df, selection_df, stationarity_df = build_formal_forecast(clean_df, periods=4)
     plan_df = build_procurement_plan(forecast_df, risk_df)
     heuristic_plan_df = build_heuristic_procurement_plan(forecast_df, risk_df)
     risk_analysis_df = build_risk_analysis_table(risk_df)
@@ -118,6 +121,7 @@ def run_pipeline() -> None:
     export_csv(forecast_df, FORECAST_FILE)
     export_csv(metrics_df, FORECAST_METRICS_FILE)
     export_csv(selection_df, FORECAST_SELECTION_FILE)
+    export_csv(stationarity_df, STATIONARITY_TESTS_FILE)
     export_csv(model_evaluation_df, MODEL_EVALUATION_TABLE_FILE)
     export_csv(forecast_results_df, FORECAST_RESULTS_TABLE_FILE)
     export_csv(plan_df, PLAN_FILE)
@@ -130,6 +134,10 @@ def run_pipeline() -> None:
     save_seasonality_chart(seasonality_profile_df, SEASONALITY_FIGURE)
     export_summary(_build_summary(stats_df, risk_df, plan_df, selection_df), SUMMARY_FILE)
     export_summary(build_seasonality_report(seasonality_df), SEASONALITY_REPORT_FILE)
+    export_summary(
+        build_model_justification_report(stationarity_df, selection_df),
+        MODEL_JUSTIFICATION_REPORT_FILE,
+    )
     export_summary(
         build_thesis_results_report(
             risk_analysis_df,
@@ -151,6 +159,7 @@ def run_pipeline() -> None:
     print(f"Forecasts: {FORECAST_FILE}")
     print(f"Forecast metrics: {FORECAST_METRICS_FILE}")
     print(f"Forecast selections: {FORECAST_SELECTION_FILE}")
+    print(f"Stationarity tests: {STATIONARITY_TESTS_FILE}")
     print(f"Model evaluation table: {MODEL_EVALUATION_TABLE_FILE}")
     print(f"Forecast results table: {FORECAST_RESULTS_TABLE_FILE}")
     print(f"Procurement plan: {PLAN_FILE}")
@@ -163,4 +172,5 @@ def run_pipeline() -> None:
     print(f"Seasonality chart: {SEASONALITY_FIGURE}")
     print(f"Summary: {SUMMARY_FILE}")
     print(f"Seasonality report: {SEASONALITY_REPORT_FILE}")
+    print(f"Model justification report: {MODEL_JUSTIFICATION_REPORT_FILE}")
     print(f"Thesis results report: {THESIS_RESULTS_FILE}")

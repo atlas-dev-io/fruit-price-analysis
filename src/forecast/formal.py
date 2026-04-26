@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.api import ExponentialSmoothing
 from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 
@@ -110,18 +111,75 @@ def _fallback_forecast(series: pd.Series, periods: int) -> tuple[dict, pd.Series
     return metrics, pd.Series([fallback] * periods)
 
 
+def _safe_adf_pvalue(series: pd.Series) -> float | None:
+    clean = series.dropna()
+    if len(clean) < 12 or clean.nunique() < 3:
+        return None
+    try:
+        return float(adfuller(clean, autolag="AIC")[1])
+    except Exception:
+        return None
+
+
+def _seasonality_candidate_flag(series: pd.Series) -> bool:
+    monthly_avg = series.groupby(series.index.month).mean()
+    total_std = float(series.std(ddof=0))
+    if total_std == 0:
+        return False
+    return float(monthly_avg.std(ddof=0)) / total_std >= 0.45
+
+
+def _build_model_rationale(
+    selected_family: str,
+    selected_params: str,
+    level_pvalue: float | None,
+    diff_pvalue: float | None,
+    seasonality_candidate: bool,
+) -> str:
+    level_text = "n/a" if level_pvalue is None else f"{level_pvalue:.4f}"
+    diff_text = "n/a" if diff_pvalue is None else f"{diff_pvalue:.4f}"
+    seasonality_text = "yes" if seasonality_candidate else "no"
+    return (
+        f"Selected {selected_family} with {selected_params}. "
+        f"ADF(level)={level_text}, ADF(diff1)={diff_text}, seasonality_candidate={seasonality_text}. "
+        "ARIMA orders were limited to low-order weekly models for interpretability and robustness, "
+        "and SARIMA was only tested when the series showed stronger seasonal evidence."
+    )
+
+
 def build_formal_forecast(
     df: pd.DataFrame, periods: int = FORECAST_HORIZON
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     forecast_rows = []
     metric_rows = []
     selection_rows = []
+    stationarity_rows = []
 
     for fruit_name, group in df.groupby("fruit_name"):
         weekly_series = _build_weekly_series(group)
         market = group["market"].iloc[-1]
         last_date = weekly_series.index.max()
         train, test = _split_train_test(weekly_series)
+        level_pvalue = _safe_adf_pvalue(train)
+        diff_pvalue = _safe_adf_pvalue(train.diff().dropna())
+        seasonality_candidate = _seasonality_candidate_flag(train)
+
+        stationarity_rows.append(
+            {
+                "fruit_name": fruit_name,
+                "data_frequency": "weekly",
+                "train_points": len(train),
+                "level_adf_pvalue": round(level_pvalue, 4) if level_pvalue is not None else None,
+                "diff1_adf_pvalue": round(diff_pvalue, 4) if diff_pvalue is not None else None,
+                "level_stationary_at_5pct": bool(level_pvalue is not None and level_pvalue < 0.05),
+                "diff1_stationary_at_5pct": bool(diff_pvalue is not None and diff_pvalue < 0.05),
+                "seasonality_candidate": seasonality_candidate,
+                "arima_grid_tested": ", ".join(str(order) for order in ARIMA_ORDERS),
+                "sarima_candidates_tested": "; ".join(
+                    f"order={order}, seasonal={seasonal_order}" for order, seasonal_order in SARIMA_CONFIGS
+                ),
+            }
+        )
 
         candidate_results = {}
         with warnings.catch_warnings():
@@ -154,7 +212,7 @@ def build_formal_forecast(
                 except Exception:
                     continue
 
-            if len(train) >= 104:
+            if len(train) >= 104 and seasonality_candidate:
                 for order, seasonal_order in SARIMA_CONFIGS:
                     model_name = (
                         f"sarima_{order[0]}_{order[1]}_{order[2]}_"
@@ -223,6 +281,16 @@ def build_formal_forecast(
                 "selected_model": best_model,
                 "selected_family": best_result["family"],
                 "selected_params": best_result["params"],
+                "level_adf_pvalue": round(level_pvalue, 4) if level_pvalue is not None else None,
+                "diff1_adf_pvalue": round(diff_pvalue, 4) if diff_pvalue is not None else None,
+                "seasonality_candidate": seasonality_candidate,
+                "model_rationale": _build_model_rationale(
+                    best_result["family"],
+                    best_result["params"],
+                    level_pvalue,
+                    diff_pvalue,
+                    seasonality_candidate,
+                ),
                 "rmse": round(best_metrics["rmse"], 4),
                 "mae": round(best_metrics["mae"], 4),
                 "mape": round(best_metrics["mape"], 4),
@@ -246,4 +314,5 @@ def build_formal_forecast(
     forecast_df = pd.DataFrame(forecast_rows).sort_values(["fruit_name", "date"]).reset_index(drop=True)
     metrics_df = pd.DataFrame(metric_rows).sort_values(["fruit_name", "rmse"]).reset_index(drop=True)
     selection_df = pd.DataFrame(selection_rows).sort_values(["fruit_name"]).reset_index(drop=True)
-    return forecast_df, metrics_df, selection_df
+    stationarity_df = pd.DataFrame(stationarity_rows).sort_values(["fruit_name"]).reset_index(drop=True)
+    return forecast_df, metrics_df, selection_df, stationarity_df

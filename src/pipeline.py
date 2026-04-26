@@ -53,6 +53,7 @@ from src.visualization.export import (
     build_model_justification_report,
     build_model_evaluation_table,
     build_optimization_results_table,
+    build_outputs_guide,
     build_risk_analysis_table,
     build_strategy_comparison_table,
     build_thesis_results_report,
@@ -144,6 +145,8 @@ def run_pipeline() -> None:
             model_evaluation_df,
             cost_comparison_df,
             strategy_comparison_df,
+            seasonality_df,
+            constraint_summary_df,
         ),
         THESIS_RESULTS_FILE,
     )

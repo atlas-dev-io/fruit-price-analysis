@@ -171,6 +171,8 @@ make test
 - `outputs/reports/thesis_main_dataset_summary.md`
 - `outputs/reports/thesis_results.md`
 
+输出文件的用途说明见 [OUTPUTS.md](/home/ethan/Project/fruit-price-analysis/OUTPUTS.md:1)。
+
 ## 当前实现做了什么
 
 当前代码已经能跑通基于论文主数据的完整闭环：
@@ -187,6 +189,7 @@ make test
 
 - 当前预测模块已经具备周度评估窗口、参数搜索和模型选择结果。
 - 当前采购模块已经切换到带需求、库存和采购上限约束的线性规划版本。
+- 当前输出层已经补充季节性分析、模型论证、成本对比和结果章节草稿。
 
 ## 测试
 

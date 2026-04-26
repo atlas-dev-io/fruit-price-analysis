@@ -136,11 +136,16 @@ def build_thesis_results_report(
     model_eval_df: pd.DataFrame,
     cost_comparison_df: pd.DataFrame,
     strategy_df: pd.DataFrame,
+    seasonality_df: pd.DataFrame,
+    constraint_summary_df: pd.DataFrame,
 ) -> str:
     highest_risk = risk_table_df.sort_values("composite_risk_score", ascending=False).iloc[0]
     lowest_risk = risk_table_df.sort_values("composite_risk_score").iloc[0]
     best_model = model_eval_df.sort_values("rmse").iloc[0]
     best_saving = cost_comparison_df.sort_values("cost_saving", ascending=False).iloc[0]
+    strongest_seasonality = seasonality_df.sort_values("seasonality_strength", ascending=False).iloc[0]
+    weakest_seasonality = seasonality_df.sort_values("seasonality_strength").iloc[0]
+    strongest_stability = constraint_summary_df.sort_values("avg_safety_stock_target_kg", ascending=False).iloc[0]
     strategy_lines = "\n".join(
         f"- {row.fruit_name} ({row.risk_level}): {row.representative_strategy}"
         for row in strategy_df.itertuples()
@@ -152,20 +157,80 @@ def build_thesis_results_report(
 
 Using Taiwan Taipei Second Market data for five fruit categories, the analysis shows that {highest_risk['fruit_name']} has the highest comprehensive risk score ({highest_risk['composite_risk_score']:.4f}) and is therefore classified as a high-risk fruit, while {lowest_risk['fruit_name']} has the lowest comprehensive risk score ({lowest_risk['composite_risk_score']:.4f}) and is classified as low risk. Under a fixed weekly evaluation window, the forecasting module selected {best_model['selected_model']} for {best_model['fruit_name']}, achieving the lowest observed RMSE among the selected models ({best_model['rmse']:.4f}). After replacing the heuristic procurement rule with a linear-program optimization model, the largest cost reduction appeared in {best_saving['fruit_name']}, with a saving of {best_saving['cost_saving']:.2f} and a saving rate of {best_saving['cost_saving_rate']:.2%}. The optimized procurement results indicate that high-risk fruits should follow short-cycle rolling purchases, while low-risk fruits can shift part of procurement to lower-price periods and use inventory smoothing to reduce total cost.
 
-## Risk Findings
+## 4.1 Risk Analysis
 
 - Highest risk fruit: {highest_risk['fruit_name']} ({highest_risk['risk_level']})
 - Lowest risk fruit: {lowest_risk['fruit_name']} ({lowest_risk['risk_level']})
 - Highest risk explanation: {highest_risk['risk_reason']}
+- Interpretation: the cross-fruit risk ranking confirms that pears and grapes require more conservative procurement decisions, while apples and oranges provide more room for inventory-based smoothing.
 
-## Forecast Findings
+## 4.2 Seasonality Analysis
+
+- Strongest seasonality: {strongest_seasonality['fruit_name']} with strength {strongest_seasonality['seasonality_strength']:.4f}
+- Weakest seasonality: {weakest_seasonality['fruit_name']} with strength {weakest_seasonality['seasonality_strength']:.4f}
+- Interpretation: fruits with stronger monthly seasonality are better candidates for seasonal model comparison, while weaker series can remain in simpler weekly model families.
+
+## 4.3 Forecast Model Results
 
 - Best selected model by RMSE: {best_model['fruit_name']} -> {best_model['selected_model']} [{best_model['selected_params']}]
 - Evaluation frequency: weekly
+- Interpretation: the final model set is not forced into one family; the code preserves interpretability by selecting among ETS, ARIMA and SARIMA according to out-of-sample error.
 
-## Procurement Findings
+## 4.4 Procurement Optimization Results
+
+- Largest cost saving versus heuristic baseline: {best_saving['fruit_name']} ({best_saving['cost_saving']:.2f}, {best_saving['cost_saving_rate']:.2%})
+- Strongest explicit safety-stock setting: {strongest_stability['fruit_name']} with average safety stock target {strongest_stability['avg_safety_stock_target_kg']:.2f} kg
+- Interpretation: the optimization model now combines cost, risk, holding, and supply-stability considerations instead of only mapping risk levels to fixed procurement multipliers.
+
+## 4.5 Strategy Comparison
 
 {strategy_lines}
+
+## 4.6 Writing Notes
+
+- `outputs/tables/risk_analysis_table.csv` can support the risk-analysis subsection.
+- `outputs/tables/model_evaluation_table.csv` and `outputs/tables/stationarity_tests.csv` can support the forecasting-method subsection.
+- `outputs/tables/optimization_cost_comparison.csv` and `outputs/tables/procurement_constraint_summary.csv` can support the procurement-optimization subsection.
+- `outputs/figures/risk_comparison.png` and `outputs/figures/seasonality_patterns.png` can be inserted directly into the results chapter.
+"""
+
+
+def build_outputs_guide() -> str:
+    return """# Outputs Guide
+
+## Figures
+
+- `outputs/figures/price_trends.png`: historical price trend figure for all fruits.
+- `outputs/figures/risk_comparison.png`: composite risk comparison chart for cross-fruit risk discussion.
+- `outputs/figures/seasonality_patterns.png`: month-level seasonality profile chart for seasonal analysis.
+
+## Tables
+
+- `outputs/tables/descriptive_stats.csv`: descriptive statistics for each fruit.
+- `outputs/tables/seasonality_analysis.csv`: per-fruit seasonality strength, peak month, and trough month.
+- `outputs/tables/seasonality_profile.csv`: month-by-month average price profile.
+- `outputs/tables/risk_metrics.csv`: full risk metric output with z-scores and weighted components.
+- `outputs/tables/risk_classification.csv`: explainable risk grading table.
+- `outputs/tables/risk_analysis_table.csv`: compact risk-analysis table for the thesis.
+- `outputs/tables/forecast_model_metrics.csv`: all candidate forecast model errors.
+- `outputs/tables/forecast_model_selection.csv`: final selected model and rationale by fruit.
+- `outputs/tables/stationarity_tests.csv`: ADF-based stationarity checks and tested model grids.
+- `outputs/tables/model_evaluation_table.csv`: thesis-friendly summary of selected models versus baseline.
+- `outputs/tables/forecast_prices.csv`: raw forecast output used by the procurement layer.
+- `outputs/tables/forecast_results_table.csv`: compact forecast-results table for the thesis.
+- `outputs/tables/procurement_plan.csv`: full linear-program procurement output by period.
+- `outputs/tables/optimization_results_table.csv`: compact optimization-results table for the thesis.
+- `outputs/tables/optimization_cost_comparison.csv`: optimized-versus-heuristic cost comparison.
+- `outputs/tables/procurement_strategy_comparison.csv`: cross-fruit strategy comparison by risk level.
+- `outputs/tables/procurement_constraint_summary.csv`: procurement-cap, safety-stock, and smoothing summary.
+
+## Reports
+
+- `outputs/reports/summary.md`: short pipeline summary.
+- `outputs/reports/thesis_main_dataset_summary.md`: dataset coverage summary.
+- `outputs/reports/seasonality_analysis.md`: chapter-ready seasonality notes.
+- `outputs/reports/model_justification.md`: forecasting justification notes.
+- `outputs/reports/thesis_results.md`: expanded thesis results chapter draft.
 """
 
 

@@ -54,3 +54,18 @@ def save_risk_comparison_chart(risk_df: pd.DataFrame, output_path) -> None:
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
     plt.close()
+
+
+def save_seasonality_chart(profile_df: pd.DataFrame, output_path) -> None:
+    plt.figure(figsize=(12, 7))
+    for fruit_name, group in profile_df.groupby("fruit_name"):
+        plt.plot(group["month"], group["avg_price"], marker="o", label=fruit_name)
+
+    plt.title("Monthly Seasonality Profiles by Fruit")
+    plt.xlabel("Month")
+    plt.ylabel("Average Price")
+    plt.xticks(range(1, 13))
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()

@@ -1,0 +1,6 @@
+fruit_name,overall_avg_price,seasonality_strength,peak_month,peak_month_avg_price,trough_month,trough_month_avg_price,seasonal_range
+Grape,113.9185,0.687,9,212.4077,7,82.6439,129.7638
+Orange,30.6275,0.6788,3,39.8458,8,14.1062,25.7396
+Apple,65.1387,0.6231,1,96.1727,7,51.2787,44.894
+Banana,38.5235,0.5115,2,54.2432,7,25.1487,29.0945
+Pear,67.2861,0.2217,4,84.0486,12,51.122,32.9266

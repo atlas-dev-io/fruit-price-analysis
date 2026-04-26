@@ -14,6 +14,10 @@ from src.config import (
     RISK_FIGURE,
     RISK_CLASSIFICATION_FILE,
     RISK_FILE,
+    SEASONALITY_FIGURE,
+    SEASONALITY_FILE,
+    SEASONALITY_PROFILE_FILE,
+    SEASONALITY_REPORT_FILE,
     STATS_FILE,
     SUMMARY_FILE,
     THESIS_RESULTS_FILE,
@@ -23,10 +27,19 @@ from src.config import (
 from src.data.cleaning import clean_price_data
 from src.data.loaders import load_price_data
 from src.features.descriptive_stats import build_descriptive_stats
+from src.features.seasonality import (
+    build_seasonality_profile,
+    build_seasonality_report,
+    build_seasonality_table,
+)
 from src.features.volatility import build_risk_classification_table, build_risk_metrics
 from src.forecast.formal import build_formal_forecast
 from src.optimization.model import build_heuristic_procurement_plan, build_procurement_plan
-from src.visualization.charts import save_price_chart, save_risk_comparison_chart
+from src.visualization.charts import (
+    save_price_chart,
+    save_risk_comparison_chart,
+    save_seasonality_chart,
+)
 from src.visualization.export import (
     build_cost_comparison_table,
     build_forecast_results_table,
@@ -75,6 +88,8 @@ def run_pipeline() -> None:
     raw_df = load_price_data(THESIS_MAIN_DATASET_FILE)
     clean_df = clean_price_data(raw_df)
     stats_df = build_descriptive_stats(clean_df)
+    seasonality_df = build_seasonality_table(clean_df)
+    seasonality_profile_df = build_seasonality_profile(clean_df)
     risk_df = build_risk_metrics(clean_df)
     risk_classification_df = build_risk_classification_table(risk_df)
     forecast_df, metrics_df, selection_df = build_formal_forecast(clean_df, periods=4)
@@ -89,6 +104,8 @@ def run_pipeline() -> None:
 
     export_csv(clean_df, PROCESSED_PRICE_FILE)
     export_csv(stats_df, STATS_FILE)
+    export_csv(seasonality_df, SEASONALITY_FILE)
+    export_csv(seasonality_profile_df, SEASONALITY_PROFILE_FILE)
     export_csv(risk_df, RISK_FILE)
     export_csv(risk_classification_df, RISK_CLASSIFICATION_FILE)
     export_csv(risk_analysis_df, RISK_ANALYSIS_TABLE_FILE)
@@ -103,7 +120,9 @@ def run_pipeline() -> None:
     export_csv(strategy_comparison_df, PROCUREMENT_STRATEGY_COMPARISON_FILE)
     save_price_chart(clean_df, PRICE_FIGURE)
     save_risk_comparison_chart(risk_df, RISK_FIGURE)
+    save_seasonality_chart(seasonality_profile_df, SEASONALITY_FIGURE)
     export_summary(_build_summary(stats_df, risk_df, plan_df, selection_df), SUMMARY_FILE)
+    export_summary(build_seasonality_report(seasonality_df), SEASONALITY_REPORT_FILE)
     export_summary(
         build_thesis_results_report(
             risk_analysis_df,
@@ -117,6 +136,8 @@ def run_pipeline() -> None:
     print("Pipeline finished.")
     print(f"Processed data: {PROCESSED_PRICE_FILE}")
     print(f"Descriptive stats: {STATS_FILE}")
+    print(f"Seasonality analysis: {SEASONALITY_FILE}")
+    print(f"Seasonality profile: {SEASONALITY_PROFILE_FILE}")
     print(f"Risk metrics: {RISK_FILE}")
     print(f"Risk classifications: {RISK_CLASSIFICATION_FILE}")
     print(f"Risk analysis table: {RISK_ANALYSIS_TABLE_FILE}")
@@ -131,5 +152,7 @@ def run_pipeline() -> None:
     print(f"Procurement strategy comparison: {PROCUREMENT_STRATEGY_COMPARISON_FILE}")
     print(f"Chart: {PRICE_FIGURE}")
     print(f"Risk chart: {RISK_FIGURE}")
+    print(f"Seasonality chart: {SEASONALITY_FIGURE}")
     print(f"Summary: {SUMMARY_FILE}")
+    print(f"Seasonality report: {SEASONALITY_REPORT_FILE}")
     print(f"Thesis results report: {THESIS_RESULTS_FILE}")
